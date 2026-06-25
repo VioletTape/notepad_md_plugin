@@ -1,0 +1,31 @@
+# Build output
+x64/
+x86/
+Debug/
+Release/
+*.obj
+*.pch
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.dll
+*.exe
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.VC.db
+*.VC.opendb
+*.opendb
+ipch/
+_ReSharper.Caches/
+
+# NuGet
+packages/
+*.nupkg
+
+# Logs / misc
+*.log
+*.tlog

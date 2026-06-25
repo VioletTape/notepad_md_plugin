@@ -1,0 +1,8 @@
+LIBRARY NMD
+EXPORTS
+    isUnicode
+    getName
+    getFuncsArray
+    setInfo
+    beNotified
+    messageProc
