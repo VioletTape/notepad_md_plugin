@@ -37,6 +37,7 @@ img { max-width: 100%; }
 ul,ol { padding-left: 2em; margin-bottom: 16px; }
 li { margin: 4px 0; }
 hr { border: none; border-top: 1px solid #eaecef; margin: 24px 0; }
+pre.shiki { background: #f6f8fa !important; }
 </style>
 </head>
 <body>
@@ -162,6 +163,18 @@ function applyAcronyms(el, acronyms) {
   });
 }
 
+function __shikiHighlight() {
+  if (!window.__shiki) return;
+  document.querySelectorAll('pre > code[class*="language-"]').forEach(function(el) {
+    var m = el.className.match(/language-(\S+)/);
+    if (!m) return;
+    try {
+      var pre = el.closest('pre');
+      pre.outerHTML = window.__shiki.codeToHtml(el.textContent, { lang: m[1], theme: 'github-light' });
+    } catch(e) {}
+  });
+}
+
 function renderMarkdown(md) {
   var acronyms = parseFrontMatterAcronyms(md);
   md = md.replace(/^\s*---\n[\s\S]*?\n---\n?/, '');
@@ -169,11 +182,21 @@ function renderMarkdown(md) {
   if (typeof marked !== 'undefined') {
     el.innerHTML = marked.parse(md);
     applyAcronyms(el, acronyms);
+    __shikiHighlight();
   } else {
     // ponytail: plain-text fallback until marked.js is embedded
     el.textContent = md;
   }
 }
+</script>
+<script type="module">
+import { createHighlighter } from 'https://esm.sh/shiki@1'
+const hl = await createHighlighter({
+  themes: ['github-light'],
+  langs: ['csharp', 'javascript', 'typescript', 'python', 'bash', 'shell', 'sql', 'json', 'yaml', 'html', 'css', 'xml', 'rust', 'go', 'cpp', 'markdown'],
+})
+window.__shiki = hl
+if (document.getElementById('content').children.length) window.__shikiHighlight()
 </script>
 </body>
 </html>

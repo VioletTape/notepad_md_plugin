@@ -172,6 +172,18 @@ function applyAcronyms(el, acronyms) {
   });
 }
 
+function __shikiHighlight() {
+  if (!window.__shiki) return;
+  document.querySelectorAll('pre > code[class*="language-"]').forEach(function(el) {
+    var m = el.className.match(/language-(\S+)/);
+    if (!m) return;
+    try {
+      var pre = el.closest('pre');
+      pre.outerHTML = window.__shiki.codeToHtml(el.textContent, { lang: m[1], theme: 'github-dark' });
+    } catch(e) {}
+  });
+}
+
 function renderMarkdown(md) {
   var acronyms = parseFrontMatterAcronyms(md);
   md = md.replace(/^\s*---\n[\s\S]*?\n---\n?/, '');
@@ -189,11 +201,21 @@ function renderMarkdown(md) {
     el.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach(function(h) {
       h.innerHTML = h.innerHTML.replace(/(\{[^}]*\})/g, '<span style="color:#ADBAC7">$1</span>');
     });
+    __shikiHighlight();
   } else {
     // ponytail: plain-text fallback until marked.js is embedded
     el.textContent = md;
   }
 }
+</script>
+<script type="module">
+import { createHighlighter } from 'https://esm.sh/shiki@1'
+const hl = await createHighlighter({
+  themes: ['github-dark'],
+  langs: ['csharp', 'javascript', 'typescript', 'python', 'bash', 'shell', 'sql', 'json', 'yaml', 'html', 'css', 'xml', 'rust', 'go', 'cpp', 'markdown'],
+})
+window.__shiki = hl
+if (document.getElementById('content').children.length) window.__shikiHighlight()
 </script>
 </body>
 </html>)html";
