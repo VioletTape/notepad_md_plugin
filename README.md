@@ -5,7 +5,7 @@ A Notepad++ plugin that renders a live Markdown preview in a side panel powered 
 ## Installation 
 
 1. Build `NMD.dll` (Visual Studio 2022, x64 Release).
-2. Copy it to `%APPDATA%\Notepad++\plugins\NMD\NMD.dll`.
+2. Copy it to ` C:\Program Files\Notepad++\plugins`.
 3. Restart Notepad++.
 
 The preview panel toggles via **Plugins → NMD → Toggle Preview**.
