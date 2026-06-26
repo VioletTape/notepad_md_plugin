@@ -46,8 +46,14 @@ Blocks without a language tag are rendered as plain text (no highlighting).
 
 ## Window Persistence
 
-The preview window remembers its position and size between Notepad++ sessions.
-Settings are saved to `%APPDATA%\Notepad++\plugins\config\NMD.ini` whenever the window is moved or resized.
+The preview window remembers its position, size, and zoom level between Notepad++ sessions.
+Settings are saved to `%APPDATA%\Notepad++\plugins\config\NMD.ini` whenever the window is moved, resized, or zoomed.
+
+## Local File Navigation
+
+Clicking a relative link in the preview opens the target file in Notepad++.
+Links are resolved relative to the directory of the currently active file, so `[next](adr/002.md)` opens `adr/002.md` next to the current document.
+External `http://`, `https://`, and `mailto:` links open in the default browser.
 
 ## Scroll Sync
 
