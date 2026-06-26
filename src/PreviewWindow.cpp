@@ -298,6 +298,7 @@ static bool     s_classRegistered = false;
 static std::wstring s_lastContent;
 static int      s_lastScrollLine  = -1;
 static bool     s_syncFromViewer  = false;
+static std::wstring s_iniPath;
 
 // ---------------------------------------------------------------------------
 // Window class registration
@@ -320,6 +321,24 @@ void PreviewWindow::RegisterClass(HINSTANCE hInst) {
 }
 
 // ---------------------------------------------------------------------------
+// Config helpers
+// ---------------------------------------------------------------------------
+
+static void SaveWindowPos(HWND hwnd) {
+    if (s_iniPath.empty()) return;
+    RECT r = {};
+    GetWindowRect(hwnd, &r);
+    const wchar_t* sec = L"Window";
+    auto wi = [&](const wchar_t* k, int v) {
+        WritePrivateProfileString(sec, k, std::to_wstring(v).c_str(), s_iniPath.c_str());
+    };
+    wi(L"X", r.left);
+    wi(L"Y", r.top);
+    wi(L"W", r.right - r.left);
+    wi(L"H", r.bottom - r.top);
+}
+
+// ---------------------------------------------------------------------------
 // Window creation
 // ---------------------------------------------------------------------------
 
@@ -328,17 +347,28 @@ void PreviewWindow::Create(HWND nppHwnd, HINSTANCE hInst) {
     s_nppHwnd = nppHwnd;
     RegisterClass(hInst);
 
-    RECT r = {};
-    GetWindowRect(nppHwnd, &r);
-    int x = r.right + 10;
-    int y = r.top;
+    wchar_t appData[MAX_PATH] = {};
+    SHGetFolderPathW(nullptr, CSIDL_APPDATA, nullptr, SHGFP_TYPE_CURRENT, appData);
+    s_iniPath = std::wstring(appData) + L"\\Notepad++\\plugins\\config\\NMD.ini";
+
+    RECT nr = {};
+    GetWindowRect(nppHwnd, &nr);
+    const wchar_t* sec = L"Window";
+    std::wstring ini = s_iniPath;
+    auto ri = [&](const wchar_t* k, int def) {
+        return (int)GetPrivateProfileInt(sec, k, def, ini.c_str());
+    };
+    int x = ri(L"X", nr.right + 10);
+    int y = ri(L"Y", nr.top);
+    int w = ri(L"W", 800);
+    int h = ri(L"H", 600);
 
     s_hwnd = CreateWindowEx(
         WS_EX_TOOLWINDOW,
         PREVIEW_CLASS,
         L"Markdown Preview",
         WS_POPUP | WS_CAPTION | WS_SIZEBOX | WS_SYSMENU,
-        x, y, 800, 600,
+        x, y, w, h,
         nppHwnd, nullptr, hInst, nullptr
     );
 }
@@ -631,7 +661,12 @@ LRESULT CALLBACK PreviewWindow::WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM l
             }
             return 0;
 
+        case WM_MOVE:
+            SaveWindowPos(hwnd);
+            return 0;
+
         case WM_SIZE: {
+            SaveWindowPos(hwnd);
 #ifdef HAVE_WEBVIEW2
             if (s_controller) {
                 RECT bounds = {};

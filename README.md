@@ -44,6 +44,11 @@ Powered by [Shiki](https://shiki.style/) (embedded in the DLL — works offline)
 
 Blocks without a language tag are rendered as plain text (no highlighting).
 
+## Window Persistence
+
+The preview window remembers its position and size between Notepad++ sessions.
+Settings are saved to `%APPDATA%\Notepad++\plugins\config\NMD.ini` whenever the window is moved or resized.
+
 ## Scroll Sync
 
 The editor and preview stay in sync automatically:
