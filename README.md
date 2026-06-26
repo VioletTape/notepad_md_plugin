@@ -1,8 +1,8 @@
-# NMD — Notepad++ Markdown Preview {#root}
+# NMD — Notepad++ Markdown Preview 
 
 A Notepad++ plugin that renders a live Markdown preview in a side panel powered by WebView2.
 
-## Installation {#installation}
+## Installation 
 
 1. Build `NMD.dll` (Visual Studio 2022, x64 Release).
 2. Copy it to `%APPDATA%\Notepad++\plugins\NMD\NMD.dll`.
@@ -10,7 +10,7 @@ A Notepad++ plugin that renders a live Markdown preview in a side panel powered 
 
 The preview panel toggles via **Plugins → NMD → Toggle Preview**.
 
-## Syntax Highlighting {#syntax-highlighting}
+## Syntax Highlighting 
 
 Fenced code blocks are highlighted automatically when a language tag is provided:
 
@@ -22,7 +22,7 @@ public record Point(int X, int Y);
 
 Powered by [Shiki](https://shiki.style/) (embedded in the DLL — works offline).
 
-### Supported languages {#syntax-highlighting.supported-languages}
+### Supported languages 
 
 | Tag | Language |
 |---|---|
@@ -44,7 +44,7 @@ Powered by [Shiki](https://shiki.style/) (embedded in the DLL — works offline)
 
 Blocks without a language tag are rendered as plain text (no highlighting).
 
-## Markdown Features {#markdown-features}
+## Markdown Features 
 
 - CommonMark + GitHub Flavored Markdown (tables, task lists, strikethrough)
 - Front-matter `acronyms:` block — defines abbreviations rendered as `<abbr>` tooltips
