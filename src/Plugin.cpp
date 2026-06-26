@@ -63,7 +63,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification* notif) {
             break;
         }
         case NPPN_BUFFERACTIVATED:
-            PreviewWindow::OnBufferActivated();
+            PreviewWindow::OnBufferActivated(notif->nmhdr.idFrom);
             break;
         case NPPN_FILEBEFORECLOSE:
             PreviewWindow::OnFileClosed();

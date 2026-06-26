@@ -8,6 +8,10 @@ typedef INT_PTR  sptr_t;
 
 #define NPPM_GETPLUGINSCONFIGDIR    (NPPMSG + 97)
 #define NPPM_GETCURRENTSCINTILLA    (NPPMSG + 4)
+#define NPPM_GETFULLCURRENTPATH     (NPPMSG + 16)
+#define NPPM_GETCURRENTBUFFERID     (NPPMSG + 60)
+#define NPPM_GETFULLPATHFROMBUFFERID (NPPMSG + 58)
+#define NPPM_DOOPEN                 (NPPMSG + 77)
 
 // Notifications
 #define NPPN_FIRST                  1000

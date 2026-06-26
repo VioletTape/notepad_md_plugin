@@ -12,7 +12,7 @@ class PreviewWindow {
 public:
     static void Toggle(HWND nppHwnd, HINSTANCE hInst);
     static void OnModified();
-    static void OnBufferActivated();
+    static void OnBufferActivated(UINT_PTR bufferID);
     static void OnFileClosed();
     static void OnScrolled();
 
