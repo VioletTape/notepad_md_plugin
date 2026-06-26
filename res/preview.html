@@ -190,11 +190,8 @@ function renderMarkdown(md) {
 }
 </script>
 <script type="module">
-import { createHighlighter } from 'https://esm.sh/shiki@1'
-const hl = await createHighlighter({
-  themes: ['github-light'],
-  langs: ['csharp', 'javascript', 'typescript', 'python', 'bash', 'shell', 'sql', 'json', 'yaml', 'html', 'css', 'xml', 'rust', 'go', 'cpp', 'markdown'],
-})
+import { createShiki } from 'https://nmd-local/shiki.js'
+const hl = await createShiki('https://nmd-local/onig.wasm')
 window.__shiki = hl
 if (document.getElementById('content').children.length) window.__shikiHighlight()
 </script>

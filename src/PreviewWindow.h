@@ -25,6 +25,7 @@ private:
 #ifdef HAVE_WEBVIEW2
     static ICoreWebView2Controller* s_controller;
     static ICoreWebView2*           s_webView;
+    static ICoreWebView2Environment* s_env;
 #endif
 
     static void Create(HWND nppHwnd, HINSTANCE hInst);

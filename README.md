@@ -20,7 +20,7 @@ public record Point(int X, int Y);
 ```
 ````
 
-Powered by [Shiki](https://shiki.style/) (loaded from CDN on first use — requires internet).
+Powered by [Shiki](https://shiki.style/) (embedded in the DLL — works offline).
 
 ### Supported languages {#syntax-highlighting.supported-languages}
 

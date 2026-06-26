@@ -1,8 +1,11 @@
 #include "PreviewWindow.h"
 #include "Plugin.h"
 #include "../include/Scintilla.h"
+#include "../res/resource.h"
 #include <shlobj.h>
+#include <shlwapi.h>
 #include <vector>
+#pragma comment(lib, "shlwapi.lib")
 
 #define PREVIEW_CLASS   L"NMD_PreviewWnd"
 #define TIMER_DEBOUNCE  1
@@ -209,11 +212,8 @@ function renderMarkdown(md) {
 }
 </script>
 <script type="module">
-import { createHighlighter } from 'https://esm.sh/shiki@1'
-const hl = await createHighlighter({
-  themes: ['github-dark'],
-  langs: ['csharp', 'javascript', 'typescript', 'python', 'bash', 'shell', 'sql', 'json', 'yaml', 'html', 'css', 'xml', 'rust', 'go', 'cpp', 'markdown'],
-})
+import { createShiki } from 'https://nmd-local/shiki.js'
+const hl = await createShiki('https://nmd-local/onig.wasm')
 window.__shiki = hl
 if (document.getElementById('content').children.length) window.__shikiHighlight()
 </script>
@@ -229,8 +229,9 @@ HINSTANCE PreviewWindow::s_hInst  = nullptr;
 HWND      PreviewWindow::s_nppHwnd = nullptr;
 
 #ifdef HAVE_WEBVIEW2
-ICoreWebView2Controller* PreviewWindow::s_controller = nullptr;
-ICoreWebView2*           PreviewWindow::s_webView    = nullptr;
+ICoreWebView2Controller*  PreviewWindow::s_controller = nullptr;
+ICoreWebView2*            PreviewWindow::s_webView    = nullptr;
+ICoreWebView2Environment* PreviewWindow::s_env        = nullptr;
 #endif
 
 static bool     s_classRegistered = false;
@@ -299,6 +300,9 @@ void PreviewWindow::InitWebView2() {
             [hwnd](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
                 if (FAILED(result) || !env) return result;
 
+                s_env = env;
+                s_env->AddRef();
+
                 env->CreateCoreWebView2Controller(
                     hwnd,
                     Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
@@ -309,6 +313,58 @@ void PreviewWindow::InitWebView2() {
                             s_controller->AddRef();
 
                             s_controller->get_CoreWebView2(&s_webView);
+
+                            // Serve embedded assets under https://nmd-local/
+                            s_webView->AddWebResourceRequestedFilter(
+                                L"https://nmd-local/*",
+                                COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL
+                            );
+                            s_webView->add_WebResourceRequested(
+                                Microsoft::WRL::Callback<ICoreWebView2WebResourceRequestedEventHandler>(
+                                    [](ICoreWebView2*, ICoreWebView2WebResourceRequestedEventArgs* args) -> HRESULT {
+                                        ICoreWebView2WebResourceRequest* req = nullptr;
+                                        args->get_Request(&req);
+                                        LPWSTR uri = nullptr;
+                                        req->get_Uri(&uri);
+                                        req->Release();
+
+                                        int resId = 0;
+                                        const wchar_t* mime = nullptr;
+                                        if (wcscmp(uri, L"https://nmd-local/shiki.js") == 0) {
+                                            resId = IDR_SHIKI_JS;
+                                            mime  = L"application/javascript";
+                                        } else if (wcscmp(uri, L"https://nmd-local/onig.wasm") == 0) {
+                                            resId = IDR_ONIG_WASM;
+                                            mime  = L"application/wasm";
+                                        }
+                                        CoTaskMemFree(uri);
+
+                                        if (resId == 0) return S_OK;
+
+                                        HRSRC   hRes  = FindResource(g_hInstance, MAKEINTRESOURCE(resId), RT_RCDATA);
+                                        HGLOBAL hMem  = hRes ? LoadResource(g_hInstance, hRes) : nullptr;
+                                        if (!hMem) return S_OK;
+                                        const BYTE* data = static_cast<const BYTE*>(LockResource(hMem));
+                                        DWORD size = SizeofResource(g_hInstance, hRes);
+
+                                        IStream* stream = SHCreateMemStream(data, size);
+                                        if (!stream) return S_OK;
+
+                                        std::wstring headers = std::wstring(L"Content-Type: ") + mime
+                                            + L"\r\nAccess-Control-Allow-Origin: *";
+                                        ICoreWebView2WebResourceResponse* response = nullptr;
+                                        s_env->CreateWebResourceResponse(stream, 200, L"OK", headers.c_str(), &response);
+                                        stream->Release();
+
+                                        if (response) {
+                                            args->put_Response(response);
+                                            response->Release();
+                                        }
+                                        return S_OK;
+                                    }
+                                ).Get(),
+                                nullptr
+                            );
 
                             // Fit WebView2 to the client area
                             RECT bounds = {};
@@ -497,6 +553,10 @@ LRESULT CALLBACK PreviewWindow::WndProc(HWND hwnd, UINT msg, WPARAM wp, LPARAM l
             if (s_controller) {
                 s_controller->Release();
                 s_controller = nullptr;
+            }
+            if (s_env) {
+                s_env->Release();
+                s_env = nullptr;
             }
 #endif
             s_hwnd = nullptr;
