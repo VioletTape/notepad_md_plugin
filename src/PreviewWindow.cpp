@@ -324,6 +324,13 @@ void PreviewWindow::RegisterClass(HINSTANCE hInst) {
 // Config helpers
 // ---------------------------------------------------------------------------
 
+static void SaveZoom(double zoom) {
+    if (s_iniPath.empty()) return;
+    wchar_t buf[32];
+    swprintf_s(buf, L"%.4f", zoom);
+    WritePrivateProfileString(L"Window", L"Zoom", buf, s_iniPath.c_str());
+}
+
 static void SaveWindowPos(HWND hwnd) {
     if (s_iniPath.empty()) return;
     RECT r = {};
@@ -462,6 +469,26 @@ void PreviewWindow::InitWebView2() {
                             RECT bounds = {};
                             GetClientRect(hwnd, &bounds);
                             s_controller->put_Bounds(bounds);
+
+                            // Restore saved zoom
+                            wchar_t zoomBuf[32] = L"1.0000";
+                            GetPrivateProfileString(L"Window", L"Zoom", L"1.0000", zoomBuf, 32, s_iniPath.c_str());
+                            double zoom = wcstod(zoomBuf, nullptr);
+                            if (zoom > 0.1 && zoom < 10.0)
+                                s_controller->put_ZoomFactor(zoom);
+
+                            // Persist zoom whenever user changes it
+                            s_controller->add_ZoomFactorChanged(
+                                Microsoft::WRL::Callback<ICoreWebView2ZoomFactorChangedEventHandler>(
+                                    [](ICoreWebView2Controller* ctrl, IUnknown*) -> HRESULT {
+                                        double z = 1.0;
+                                        ctrl->get_ZoomFactor(&z);
+                                        SaveZoom(z);
+                                        return S_OK;
+                                    }
+                                ).Get(),
+                                nullptr
+                            );
 
                             s_webView->add_NavigationCompleted(
                                 Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
