@@ -459,6 +459,8 @@ void PreviewWindow::InitWebView2() {
                                         s_syncFromViewer = true;
                                         SendMessage(sci, SCI_SETFIRSTVISIBLELINE, (WPARAM)line, 0);
                                         s_syncFromViewer = false;
+                                        // Read back actual position in case NPP corrected for caret visibility
+                                        s_lastScrollLine = (int)SendMessage(sci, SCI_GETFIRSTVISIBLELINE, 0, 0);
                                         return S_OK;
                                     }
                                 ).Get(),
