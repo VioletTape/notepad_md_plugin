@@ -49,3 +49,5 @@ Blocks without a language tag are rendered as plain text (no highlighting).
 - CommonMark + GitHub Flavored Markdown (tables, task lists, strikethrough)
 - Front-matter `acronyms:` block — defines abbreviations rendered as `<abbr>` tooltips
 - Live preview updates 300 ms after the last keystroke
+
+<img width="1458" height="795" alt="image" src="https://github.com/user-attachments/assets/758604d4-de02-4abf-9030-2e2e920c76d2" />
