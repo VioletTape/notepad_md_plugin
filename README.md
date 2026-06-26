@@ -44,6 +44,13 @@ Powered by [Shiki](https://shiki.style/) (embedded in the DLL — works offline)
 
 Blocks without a language tag are rendered as plain text (no highlighting).
 
+## Scroll Sync
+
+The editor and preview stay in sync automatically:
+
+- **Editor → Preview** — scrolling in Notepad++ moves the preview to the matching section.
+- **Preview → Editor** — scrolling the preview panel moves the editor to the corresponding line.
+
 ## Markdown Features 
 
 - CommonMark + GitHub Flavored Markdown (tables, task lists, strikethrough)
