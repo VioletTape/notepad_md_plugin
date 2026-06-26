@@ -178,6 +178,9 @@ void PreviewWindow::InitWebView2() {
                                         } else if (wcscmp(uri, L"https://nmd-local/nmd.html") == 0) {
                                             resId = IDR_NMD_HTML;
                                             mime  = L"text/html; charset=utf-8";
+                                        } else if (wcscmp(uri, L"https://nmd-local/mermaid.js") == 0) {
+                                            resId = IDR_MERMAID_JS;
+                                            mime  = L"application/javascript";
                                         }
                                         CoTaskMemFree(uri);
 

@@ -44,6 +44,21 @@ Powered by [Shiki](https://shiki.style/) (embedded in the DLL — works offline)
 
 Blocks without a language tag are rendered as plain text (no highlighting).
 
+## Mermaid Diagrams
+
+Fenced code blocks tagged `mermaid` are rendered as diagrams:
+
+````markdown
+```mermaid
+graph TD
+  A[Start] --> B{Decision}
+  B -->|Yes| C[Done]
+  B -->|No| A
+```
+````
+
+Powered by [Mermaid](https://mermaid.js.org/) (embedded in the DLL — works offline). All diagram types are supported: flowcharts, sequence diagrams, ER diagrams, Gantt charts, etc.
+
 ## Window Persistence
 
 The preview window remembers its position, size, and zoom level between Notepad++ sessions.

@@ -2,3 +2,5 @@
 IDI_PREVIEW   ICON    "nmd.ico"
 IDR_SHIKI_JS  RCDATA  "res/shiki.bundle.js"
 IDR_ONIG_WASM RCDATA  "res/onig.wasm"
+IDR_NMD_HTML  RCDATA  "res/nmd.html"
+IDR_MERMAID_JS RCDATA  "res/mermaid.min.js"
