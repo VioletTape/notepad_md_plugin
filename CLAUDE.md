@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Constraints
+
+- **Do not change any theme, styling, or CSS** (including `BASE_HTML`, `preview.html`, Shiki theme config, or any inline styles) without explicit user permission.
+
 ## Build
 
 **This is a Windows-only project. Compilation requires Visual Studio 2022 on Windows (not WSL).**

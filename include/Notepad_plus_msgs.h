@@ -73,3 +73,7 @@ struct SCNotification {
     int         annotationLinesAdded;
     int         updated;
 };
+
+#define SCN_UPDATEUI                2007
+#define SCI_GETFIRSTVISIBLELINE     2152
+#define SCI_SETFIRSTVISIBLELINE     2613

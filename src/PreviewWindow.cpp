@@ -125,6 +125,58 @@ Please report this to https://github.com/markedjs/marked.`,e){let s="<p>An error
 
 if(__exports != exports)module.exports = exports;return module.exports}));
 
+marked.use({
+  renderer: {
+    heading: function(token) {
+      var d = token.depth, line = token._line || 0;
+      return '<h' + d + ' data-line="' + line + '">' + this.parser.parseInline(token.tokens) + '</h' + d + '>\n';
+    },
+    paragraph: function(token) {
+      return '<p data-line="' + (token._line || 0) + '">' + this.parser.parseInline(token.tokens) + '</p>\n';
+    },
+    list: function(token) {
+      var line = token._line || 0;
+      var tag = token.ordered ? 'ol' : 'ul';
+      var start = token.ordered && token.start !== 1 ? ' start="' + token.start + '"' : '';
+      var body = '';
+      for (var i = 0; i < token.items.length; i++) body += this.listitem(token.items[i]);
+      return '<' + tag + start + ' data-line="' + line + '">\n' + body + '</' + tag + '>\n';
+    }
+  }
+});
+
+var _suppressScrollPost = false;
+var _scrollSyncTimer = null;
+
+function scrollToLine(editorLine) {
+  _suppressScrollPost = true;
+  var target = editorLine - (window._fmOffset || 0) + 1;
+  var els = document.querySelectorAll('[data-line]');
+  var best = null;
+  for (var i = 0; i < els.length; i++) {
+    if (parseInt(els[i].getAttribute('data-line'), 10) <= target) best = els[i];
+    else break;
+  }
+  if (best) best.scrollIntoView({ block: 'start', behavior: 'auto' });
+  setTimeout(function() { _suppressScrollPost = false; }, 200);
+}
+
+window.addEventListener('scroll', function() {
+  if (_suppressScrollPost || _scrollSyncTimer) return;
+  _scrollSyncTimer = setTimeout(function() {
+    _scrollSyncTimer = null;
+    if (!window.chrome || !window.chrome.webview) return;
+    var els = document.querySelectorAll('[data-line]');
+    if (!els.length) return;
+    var best = parseInt(els[0].getAttribute('data-line'), 10);
+    for (var i = 0; i < els.length; i++) {
+      if (els[i].getBoundingClientRect().top <= 5)
+        best = parseInt(els[i].getAttribute('data-line'), 10);
+      else break;
+    }
+    window.chrome.webview.postMessage(String(best + (window._fmOffset || 0) - 1));
+  }, 100);
+}, { passive: true });
 
 function parseFrontMatterAcronyms(md) {
   var fm = md.match(/^\s*---\n([\s\S]*?)\n---/);
@@ -189,10 +241,18 @@ function __shikiHighlight() {
 
 function renderMarkdown(md) {
   var acronyms = parseFrontMatterAcronyms(md);
+  var fmMatch = md.match(/^\s*---\n[\s\S]*?\n---\n?/);
+  window._fmOffset = fmMatch ? (fmMatch[0].match(/\n/g) || []).length : 0;
   md = md.replace(/^\s*---\n[\s\S]*?\n---\n?/, '');
   var el = document.getElementById('content');
   if (typeof marked !== 'undefined') {
-    el.innerHTML = marked.parse(md);
+    var tokens = marked.lexer(md);
+    var line = 1;
+    for (var i = 0; i < tokens.length; i++) {
+      tokens[i]._line = line;
+      line += (tokens[i].raw.match(/\n/g) || []).length;
+    }
+    el.innerHTML = marked.parser(tokens);
     applyAcronyms(el, acronyms);
     el.querySelectorAll('blockquote').forEach(function(bq) {
       var first = bq.firstElementChild;
@@ -236,6 +296,8 @@ ICoreWebView2Environment* PreviewWindow::s_env        = nullptr;
 
 static bool     s_classRegistered = false;
 static std::wstring s_lastContent;
+static int      s_lastScrollLine  = -1;
+static bool     s_syncFromViewer  = false;
 
 // ---------------------------------------------------------------------------
 // Window class registration
@@ -381,6 +443,28 @@ void PreviewWindow::InitWebView2() {
                                 nullptr
                             );
 
+                            s_webView->add_WebMessageReceived(
+                                Microsoft::WRL::Callback<ICoreWebView2WebMessageReceivedEventHandler>(
+                                    [](ICoreWebView2*, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
+                                        LPWSTR msg = nullptr;
+                                        args->TryGetWebMessageAsString(&msg);
+                                        if (!msg) return S_OK;
+                                        int line = _wtoi(msg);
+                                        CoTaskMemFree(msg);
+                                        int which = 0;
+                                        SendMessage(g_nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+                                        HWND sci = (which == 0) ? g_nppData._scintillaMainHandle
+                                                                 : g_nppData._scintillaSecondHandle;
+                                        s_lastScrollLine = line;
+                                        s_syncFromViewer = true;
+                                        SendMessage(sci, SCI_SETFIRSTVISIBLELINE, (WPARAM)line, 0);
+                                        s_syncFromViewer = false;
+                                        return S_OK;
+                                    }
+                                ).Get(),
+                                nullptr
+                            );
+
                             s_webView->NavigateToString(BASE_HTML);
                             return S_OK;
                         }
@@ -429,6 +513,7 @@ void PreviewWindow::PushContent(const std::wstring& markdown) {
         }
     }
 
+    s_lastScrollLine = -1; // force re-sync after content reload
     std::wstring script = L"renderMarkdown(`" + escaped + L"`)";
     s_webView->ExecuteScript(script.c_str(), nullptr);
 }
@@ -483,6 +568,21 @@ void PreviewWindow::OnBufferActivated() {
 void PreviewWindow::OnFileClosed() {
     if (!IsVisible()) return;
     PushContent(L"");
+}
+
+void PreviewWindow::OnScrolled() {
+#ifdef HAVE_WEBVIEW2
+    if (!s_webView || s_syncFromViewer) return;
+    int which = 0;
+    SendMessage(g_nppData._nppHandle, NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&which);
+    HWND sciHwnd = (which == 0) ? g_nppData._scintillaMainHandle
+                                 : g_nppData._scintillaSecondHandle;
+    int line = (int)SendMessage(sciHwnd, SCI_GETFIRSTVISIBLELINE, 0, 0);
+    if (line == s_lastScrollLine) return;
+    s_lastScrollLine = line;
+    std::wstring script = L"scrollToLine(" + std::to_wstring(line) + L")";
+    s_webView->ExecuteScript(script.c_str(), nullptr);
+#endif
 }
 
 // ---------------------------------------------------------------------------

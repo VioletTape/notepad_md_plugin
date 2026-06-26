@@ -72,6 +72,9 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification* notif) {
             if (notif->modificationType & (SC_MOD_INSERTTEXT | SC_MOD_DELETETEXT))
                 PreviewWindow::OnModified();
             break;
+        case SCN_UPDATEUI:
+            PreviewWindow::OnScrolled();
+            break;
         default:
             break;
     }

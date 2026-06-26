@@ -14,6 +14,7 @@ public:
     static void OnModified();
     static void OnBufferActivated();
     static void OnFileClosed();
+    static void OnScrolled();
 
     static void PushContent(const std::wstring& markdown);
 
