@@ -39,15 +39,6 @@ static std::wstring s_iniPath;
 // Debug log — appends a line to NMD.log next to NMD.ini
 // ---------------------------------------------------------------------------
 
-static void Log(const std::wstring& msg) {
-    if (s_iniPath.empty()) return;
-    std::wstring logPath = s_iniPath.substr(0, s_iniPath.size() - 4) + L".log";
-    FILE* f = nullptr;
-    _wfopen_s(&f, logPath.c_str(), L"a,ccs=UTF-8");
-    if (!f) return;
-    fwprintf(f, L"%s\n", msg.c_str());
-    fclose(f);
-}
 
 // ---------------------------------------------------------------------------
 // Window class registration
@@ -281,25 +272,18 @@ void PreviewWindow::InitWebView2() {
 
                                         if (msgStr.substr(0, 5) == L"open:") {
                                             std::wstring target = msgStr.substr(5);
-                                            Log(L"[open] msg=" + target);
                                             // Relative links get resolved to https://nmd-local/<path> by the browser
                                             static const std::wstring kLocalBase = L"https://nmd-local/";
-                                            if (target.substr(0, kLocalBase.size()) == kLocalBase) {
+                                            if (target.substr(0, kLocalBase.size()) == kLocalBase)
                                                 target = target.substr(kLocalBase.size());
-                                                Log(L"[open] stripped nmd-local -> " + target);
-                                            }
                                             else if (target.substr(0, 7) == L"http://" || target.substr(0, 8) == L"https://" || target.substr(0, 7) == L"mailto:") {
-                                                Log(L"[open] -> ShellExecute");
                                                 ShellExecuteW(nullptr, L"open", target.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
                                                 return S_OK;
                                             }
                                             for (auto& ch : target) if (ch == L'/') ch = L'\\';
-                                            Log(L"[open] s_currentFileDir=" + s_currentFileDir);
                                             wchar_t fullPath[MAX_PATH] = {};
                                             PathCombineW(fullPath, s_currentFileDir.c_str(), target.c_str());
-                                            Log(L"[open] fullPath=" + std::wstring(fullPath));
                                             DWORD attr = GetFileAttributesW(fullPath);
-                                            Log(L"[open] GetFileAttributes=" + std::to_wstring(attr));
                                             if (attr != INVALID_FILE_ATTRIBUTES)
                                                 SendMessage(g_nppData._nppHandle, NPPM_DOOPEN, 0, (LPARAM)fullPath);
                                             return S_OK;
@@ -403,7 +387,6 @@ static void UpdateCurrentFileDir(UINT_PTR bufferID = 0) {
     SendMessage(g_nppData._nppHandle, NPPM_GETFULLPATHFROMBUFFERID, bufferID, (LPARAM)path);
     PathRemoveFileSpecW(path);
     s_currentFileDir = path;
-    Log(std::wstring(L"[UpdateDir] s_currentFileDir=") + s_currentFileDir);
 }
 
 void PreviewWindow::Show() {
