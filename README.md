@@ -22,6 +22,13 @@ public record Point(int X, int Y);
 
 Powered by [Shiki](https://shiki.style/) (embedded in the DLL — works offline).
 
+Tagged code blocks also get a few editor-style niceties:
+
+- Header with the language tag on the left
+- `Copy` button on the right that copies the raw code block content
+- Line numbers for language-tagged blocks
+- Soft-wrap for language-tagged blocks
+
 ### Supported languages 
 
 | Tag | Language |
@@ -43,6 +50,7 @@ Powered by [Shiki](https://shiki.style/) (embedded in the DLL — works offline)
 | `yaml` | YAML |
 
 Blocks without a language tag are rendered as plain text (no highlighting).
+They still get a `Copy` button, but no language label or line numbers.
 
 ## Mermaid Diagrams
 
