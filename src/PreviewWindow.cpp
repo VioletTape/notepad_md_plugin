@@ -336,6 +336,15 @@ void PreviewWindow::InitWebView2() {}
 void PreviewWindow::PushContent(const std::wstring& markdown) {
     if (!s_webView) return;
 
+    ComPtr<ICoreWebView2_3> webView3;
+    if (SUCCEEDED(s_webView->QueryInterface(IID_PPV_ARGS(&webView3)))) {
+        if (s_currentFileDir.empty())
+            webView3->ClearVirtualHostNameToFolderMapping(L"nmd-file");
+        else
+            webView3->SetVirtualHostNameToFolderMapping(
+                L"nmd-file", s_currentFileDir.c_str(), COREWEBVIEW2_HOST_RESOURCE_ACCESS_KIND_DENY_CORS);
+    }
+
     // Escape characters that would break a JS template literal:
     //   backslash  ->  \\
     //   backtick   ->  \`

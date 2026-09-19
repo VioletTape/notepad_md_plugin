@@ -372,6 +372,12 @@ function renderMarkdown(md) {
       line += (tokens[i].raw.match(/\n/g) || []).length;
     }
     el.innerHTML = marked.parser(tokens);
+    el.querySelectorAll('img[src]').forEach(function(img) {
+      var src = img.getAttribute('src');
+      if (src && !/^(?:[a-z][a-z\d+.-]*:|\/|#)/i.test(src)) {
+        img.src = new URL(src, 'https://nmd-file/').href;
+      }
+    });
     applyAcronyms(el, acronyms);
     el.querySelectorAll('blockquote').forEach(function(bq) {
       var first = bq.firstElementChild;
