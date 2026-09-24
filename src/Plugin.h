@@ -4,7 +4,7 @@
 #include "../include/Notepad_plus_msgs.h"
 
 #define PLUGIN_NAME L"NMD - Markdown Preview"
-#define PLUGIN_VERSION L"1.0.0.0"
+#define PLUGIN_VERSION L"1.1.0.0"
 
 extern NppData    g_nppData;
 extern HINSTANCE  g_hInstance;

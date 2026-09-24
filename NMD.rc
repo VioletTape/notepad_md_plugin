@@ -31,8 +31,8 @@ IDR_KATEX_FONT_SIZE4_REGULAR         RCDATA  "res/fonts/KaTeX_Size4-Regular.woff
 IDR_KATEX_FONT_TYPEWRITER_REGULAR    RCDATA  "res/fonts/KaTeX_Typewriter-Regular.woff2"
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION        1,0,0,0
-PRODUCTVERSION     1,0,0,0
+FILEVERSION        1,1,0,0
+PRODUCTVERSION     1,1,0,0
 FILEFLAGSMASK      VS_FFI_FILEFLAGSMASK
 #ifdef _DEBUG
 FILEFLAGS          VS_FF_DEBUG
@@ -49,12 +49,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName",      "VioletTape"
             VALUE "FileDescription",  "NMD - Notepad++ Markdown Preview"
-            VALUE "FileVersion",      "1.0.0.0"
+            VALUE "FileVersion",      "1.1.0.0"
             VALUE "InternalName",     "NMD.dll"
             VALUE "LegalCopyright",   "Copyright (C) 2026 VioletTape"
             VALUE "OriginalFilename", "NMD.dll"
             VALUE "ProductName",      "NMD"
-            VALUE "ProductVersion",   "1.0.0.0"
+            VALUE "ProductVersion",   "1.1.0.0"
         END
     END
     BLOCK "VarFileInfo"

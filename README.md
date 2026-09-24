@@ -24,7 +24,7 @@ A high-performance, distraction-free Markdown live preview panel for Notepad++ p
 > *Note: Submission to Notepad++ Plugins Admin is currently in progress! Once merged, NMD will be installable directly from **Plugins → Plugins Admin...***
 
 ### Method 2: Manual Download
-1. Download the latest **`NMD-v1.0.0-x64.zip`** from [GitHub Releases](https://github.com/VioletTape/notepad_md_plugin/releases).
+1. Download the latest **`NMD-v1.1.0-x64.zip`** from [GitHub Releases](https://github.com/VioletTape/notepad_md_plugin/releases).
 2. Create a folder named `NMD` in your Notepad++ `plugins` directory:
    ```text
    C:\Program Files\Notepad++\plugins\NMD\
