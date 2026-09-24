@@ -90,9 +90,11 @@ ul,ol { padding-left: 2em; margin-bottom: 16px; }
 li { margin: 4px 0; }
 hr { border: none; border-top: 1px solid #21262d; margin: 24px 0; }
 </style>
+<link rel="stylesheet" href="https://nmd-local/katex.css">
 </head>
 <body>
 <div id="content"></div>
+<script src="https://nmd-local/katex.js"></script>
 <script>
 /**
  * marked v15.0.12 - a markdown parser
@@ -180,6 +182,13 @@ function __renderCodeBlock(token) {
   if (lang.toLowerCase() === 'mermaid') {
     return '<pre data-line="' + (token._line || 0) + '"><code' + codeClass + '>' + codeText + '</code></pre>\n';
   }
+  if (lang.toLowerCase() === 'math' && typeof katex !== 'undefined') {
+    try {
+      return '<div data-line="' + (token._line || 0) + '">' +
+        katex.renderToString(token.text, { displayMode: true, throwOnError: false }) +
+        '</div>\n';
+    } catch(e) {}
+  }
   return '<div class="nmd-code-block' + (hasLang ? ' nmd-code-block--tagged' : '') + '" data-line="' + (token._line || 0) + '">' +
     '<div class="nmd-code-header">' +
       '<span class="nmd-code-language">' + (hasLang ? __escapeHtml(lang) : '') + '</span>' +
@@ -211,6 +220,14 @@ marked.use({
     }
   }
 });
+
+if (typeof markedKatex !== 'undefined') {
+  marked.use(markedKatex({
+    throwOnError: false,
+    nonStandard: true
+  }));
+}
+
 
 var _suppressScrollPost = false;
 var _scrollSyncTimer = null;
@@ -319,7 +336,7 @@ function applyAcronyms(el, acronyms) {
       var p = n.parentNode;
       while (p && p !== el) {
         var t = p.tagName;
-        if (t === 'CODE' || t === 'PRE' || t === 'ABBR' || t === 'A') return NodeFilter.FILTER_REJECT;
+        if (t === 'CODE' || t === 'PRE' || t === 'ABBR' || t === 'A' || t === 'MATH' || (p.classList && p.classList.contains('katex'))) return NodeFilter.FILTER_REJECT;
         p = p.parentNode;
       }
       return NodeFilter.FILTER_ACCEPT;

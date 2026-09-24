@@ -126,6 +126,41 @@ void PreviewWindow::Create(HWND nppHwnd, HINSTANCE hInst) {
 
 #ifdef HAVE_WEBVIEW2
 
+static int GetKatexFontResourceId(const wchar_t* fontName) {
+    struct FontEntry {
+        const wchar_t* name;
+        int resId;
+    };
+    static const FontEntry kFonts[] = {
+        { L"KaTeX_AMS-Regular.woff2",         IDR_KATEX_FONT_AMS_REGULAR },
+        { L"KaTeX_Caligraphic-Bold.woff2",    IDR_KATEX_FONT_CALIGRAPHIC_BOLD },
+        { L"KaTeX_Caligraphic-Regular.woff2", IDR_KATEX_FONT_CALIGRAPHIC_REGULAR },
+        { L"KaTeX_Fraktur-Bold.woff2",        IDR_KATEX_FONT_FRAKTUR_BOLD },
+        { L"KaTeX_Fraktur-Regular.woff2",     IDR_KATEX_FONT_FRAKTUR_REGULAR },
+        { L"KaTeX_Main-Bold.woff2",           IDR_KATEX_FONT_MAIN_BOLD },
+        { L"KaTeX_Main-BoldItalic.woff2",     IDR_KATEX_FONT_MAIN_BOLDITALIC },
+        { L"KaTeX_Main-Italic.woff2",         IDR_KATEX_FONT_MAIN_ITALIC },
+        { L"KaTeX_Main-Regular.woff2",        IDR_KATEX_FONT_MAIN_REGULAR },
+        { L"KaTeX_Math-BoldItalic.woff2",     IDR_KATEX_FONT_MATH_BOLDITALIC },
+        { L"KaTeX_Math-Italic.woff2",         IDR_KATEX_FONT_MATH_ITALIC },
+        { L"KaTeX_SansSerif-Bold.woff2",      IDR_KATEX_FONT_SANSSERIF_BOLD },
+        { L"KaTeX_SansSerif-Italic.woff2",    IDR_KATEX_FONT_SANSSERIF_ITALIC },
+        { L"KaTeX_SansSerif-Regular.woff2",   IDR_KATEX_FONT_SANSSERIF_REGULAR },
+        { L"KaTeX_Script-Regular.woff2",      IDR_KATEX_FONT_SCRIPT_REGULAR },
+        { L"KaTeX_Size1-Regular.woff2",       IDR_KATEX_FONT_SIZE1_REGULAR },
+        { L"KaTeX_Size2-Regular.woff2",       IDR_KATEX_FONT_SIZE2_REGULAR },
+        { L"KaTeX_Size3-Regular.woff2",       IDR_KATEX_FONT_SIZE3_REGULAR },
+        { L"KaTeX_Size4-Regular.woff2",       IDR_KATEX_FONT_SIZE4_REGULAR },
+        { L"KaTeX_Typewriter-Regular.woff2",  IDR_KATEX_FONT_TYPEWRITER_REGULAR },
+    };
+    for (const auto& entry : kFonts) {
+        if (wcscmp(fontName, entry.name) == 0) {
+            return entry.resId;
+        }
+    }
+    return 0;
+}
+
 void PreviewWindow::InitWebView2() {
     HWND hwnd = s_hwnd;
 
@@ -181,6 +216,15 @@ void PreviewWindow::InitWebView2() {
                                         } else if (wcscmp(uri, L"https://nmd-local/mermaid.js") == 0) {
                                             resId = IDR_MERMAID_JS;
                                             mime  = L"application/javascript";
+                                        } else if (wcscmp(uri, L"https://nmd-local/katex.js") == 0) {
+                                            resId = IDR_KATEX_JS;
+                                            mime  = L"application/javascript";
+                                        } else if (wcscmp(uri, L"https://nmd-local/katex.css") == 0) {
+                                            resId = IDR_KATEX_CSS;
+                                            mime  = L"text/css; charset=utf-8";
+                                        } else if (wcsncmp(uri, L"https://nmd-local/fonts/", 24) == 0) {
+                                            resId = GetKatexFontResourceId(uri + 24);
+                                            mime  = L"font/woff2";
                                         }
                                         CoTaskMemFree(uri);
 

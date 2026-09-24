@@ -9,6 +9,7 @@ A high-performance, distraction-free Markdown live preview panel for Notepad++ p
 - **Single Standalone DLL:** Statically links `WebView2LoaderStatic.lib`. No secondary loader DLLs, external runtimes, or extra files required—just drop `NMD.dll` in and go.
 - **VS Code-Grade Syntax Highlighting:** Powered by **[Shiki](https://shiki.style/)** using authentic TextMate grammars for token-accurate syntax coloring, line numbers, language badges, and 1-click clipboard copy.
 - **Real, 100% Offline Mermaid.js:** Embeds the full official **[Mermaid](https://mermaid.js.org/)** engine. Sequence diagrams, state machines, class diagrams, ER models, Gantt charts, and flowcharts work out of the box with zero network requests.
+- **100% Offline KaTeX Math:** Renders inline (`$\rightarrow$`, `$E = mc^2$`), block (`$$...$$`), and GitLab-style math (```math) with bundled vector fonts and zero network requests.
 - **Standard-Compliant Markdown:** Powered by **`marked.js`** for strict CommonMark and GitHub Flavored Markdown (GFM) compliance (tables, task lists, strikethrough, autolinks).
 - **YAML Front-Matter & Extensions:** Cleanly formats document front-matter and supports custom features like automatic acronym definitions (`<abbr>` tooltips).
 - **True Bi-Directional Scroll Sync:** Seamlessly tracks your position both ways—scroll in Notepad++ to move the preview, or scroll the preview to jump your editor cursor.
@@ -85,6 +86,27 @@ graph TD
 - Entity Relationship (ER) Schemas (`erDiagram`)
 - Gantt Charts & User Journeys (`gantt`, `journey`)
 - Git Graphs & Mindmaps (`gitGraph`, `mindmap`)
+
+---
+
+## Offline LaTeX / KaTeX Math
+
+NMD embeds the complete KaTeX engine along with all math vector fonts offline in the DLL:
+
+- **Inline Math:** `$E = mc^2$` or `$\rightarrow$`
+- **GitLab-style Inline Math:** ``$`\alpha + \beta`$``
+- **Display Blocks:**
+  ```markdown
+  $$
+  \int_{0}^{\infty} e^{-x^2} dx = \frac{\sqrt{\pi}}{2}
+  $$
+  ```
+- **GitLab Fenced Blocks:**
+  ````markdown
+  ```math
+  \sum_{i=1}^n i = \frac{n(n+1)}{2}
+  ```
+  ````
 
 ---
 

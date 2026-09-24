@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /mnt/e/Projects/notepad_plugin/nmd status)",
+      "Bash(git -C /mnt/e/Projects/notepad_plugin/nmd diff)",
+      "Bash(git -C /mnt/e/Projects/notepad_plugin/nmd add src/PreviewWindow.cpp)",
+      "Bash(git -C /mnt/e/Projects/notepad_plugin/nmd commit -m ' *)"
+    ]
+  }
+}
