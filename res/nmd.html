@@ -391,8 +391,9 @@ function renderMarkdown(md) {
     el.innerHTML = marked.parser(tokens);
     el.querySelectorAll('img[src]').forEach(function(img) {
       var src = img.getAttribute('src');
+      var base = window.__nmdImageBase || 'https://nmd-file/';
       if (src && !/^(?:[a-z][a-z\d+.-]*:|\/|#)/i.test(src)) {
-        img.src = new URL(src, 'https://nmd-file/').href;
+        img.src = new URL(src, base).href;
       }
     });
     applyAcronyms(el, acronyms);
