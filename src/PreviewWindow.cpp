@@ -213,8 +213,9 @@ void PreviewWindow::InitWebView2() {
                                         } else if (wcscmp(uri, L"https://nmd-local/nmd.html") == 0) {
                                             resId = IDR_NMD_HTML;
                                             mime  = L"text/html; charset=utf-8";
-                                        } else if (wcscmp(uri, L"https://nmd-local/mermaid.js") == 0) {
-                                            resId = IDR_MERMAID_JS;
+                                        } else if (wcscmp(uri, L"https://nmd-local/pele.js") == 0 ||
+                                                   wcscmp(uri, L"https://nmd-local/mermaid.js") == 0) {
+                                            resId = IDR_PELE_JS;
                                             mime  = L"application/javascript";
                                         } else if (wcscmp(uri, L"https://nmd-local/katex.js") == 0) {
                                             resId = IDR_KATEX_JS;

@@ -6,12 +6,34 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
 body {
+  position: relative;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   font-size: 15px;
   line-height: 1.6;
   color: #e6edf3;
   background: #0d1117;
   padding: 24px 32px;
+}
+#nmd-line-gutter {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 26px;
+  pointer-events: none;
+  user-select: none;
+  z-index: 10;
+}
+.nmd-line-num {
+  position: absolute;
+  right: 6px;
+  font-size: 7.5px;
+  line-height: 1.6;
+  color: #7d8590;
+  font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
 }
 h1,h2,h3,h4,h5,h6 { font-weight: 600; margin: 24px 0 8px; line-height: 1.25; color: #FF8040; }
 h1 { font-size: 2em; border-bottom: 1px solid #21262d; padding-bottom: 0.3em; }
@@ -89,10 +111,25 @@ img { max-width: 100%; }
 ul,ol { padding-left: 2em; margin-bottom: 16px; }
 li { margin: 4px 0; }
 hr { border: none; border-top: 1px solid #21262d; margin: 24px 0; }
+:root, .pele {
+  --pele-bg: #0d1117;
+  --pele-fg: #c9d1d9;
+  --pele-muted: #8b949e;
+  --pele-line: #8b949e;
+  --pele-surface: #161b22;
+  --pele-surface-alt: #21262d;
+  --pele-border: #30363d;
+  --pele-accent: #58a6ff;
+}
+.pele-container {
+  margin-bottom: 16px;
+  overflow: auto;
+}
 </style>
 <link rel="stylesheet" href="https://nmd-local/katex.css">
 </head>
 <body>
+<div id="nmd-line-gutter"></div>
 <div id="content"></div>
 <script src="https://nmd-local/katex.js"></script>
 <script>
@@ -205,15 +242,49 @@ marked.use({
       return '<h' + d + ' data-line="' + line + '">' + this.parser.parseInline(token.tokens) + '</h' + d + '>\n';
     },
     paragraph: function(token) {
-      return '<p data-line="' + (token._line || 0) + '">' + this.parser.parseInline(token.tokens) + '</p>\n';
+      var line = token._line || 0;
+      var body = this.parser.parseInline(token.tokens);
+      var curLine = line;
+      body = body.replace(/\n/g, function() {
+        curLine++;
+        return '\n<span class="nmd-line-anchor" data-line="' + curLine + '"></span>';
+      });
+      return '<p data-line="' + line + '">' + body + '</p>\n';
     },
     list: function(token) {
       var line = token._line || 0;
       var tag = token.ordered ? 'ol' : 'ul';
       var start = token.ordered && token.start !== 1 ? ' start="' + token.start + '"' : '';
       var body = '';
-      for (var i = 0; i < token.items.length; i++) body += this.listitem(token.items[i]);
+      var curLine = line;
+      for (var i = 0; i < token.items.length; i++) {
+        var item = token.items[i];
+        item._line = curLine;
+        body += this.listitem(item);
+        curLine += (item.raw.match(/\n/g) || []).length;
+      }
       return '<' + tag + start + ' data-line="' + line + '">\n' + body + '</' + tag + '>\n';
+    },
+    listitem: function(token) {
+      var line = token._line || 0;
+      var text = this.parser.parse(token.tokens, !!token.loose);
+      return '<li data-line="' + line + '">' + text + '</li>\n';
+    },
+    table: function(token) {
+      var line = token._line || 0;
+      var header = '';
+      for (var i = 0; i < token.header.length; i++) {
+        header += this.tablecell(token.header[i]);
+      }
+      var rows = '';
+      for (var r = 0; r < token.rows.length; r++) {
+        var row = '';
+        for (var c = 0; c < token.rows[r].length; c++) {
+          row += this.tablecell(token.rows[r][c]);
+        }
+        rows += '<tr data-line="' + (line + 2 + r) + '">' + row + '</tr>\n';
+      }
+      return '<table data-line="' + line + '">\n<thead>\n<tr data-line="' + line + '">' + header + '</tr>\n</thead>\n<tbody>\n' + rows + '</tbody>\n</table>\n';
     },
     code: function(token) {
       return __renderCodeBlock(token);
@@ -370,15 +441,133 @@ function __shikiHighlight() {
     if (!m) return;
     try {
       var pre = el.closest('pre');
+      var block = pre.closest ? pre.closest('.nmd-code-block') : null;
+      var startLine = block ? parseInt(block.getAttribute('data-line'), 10) : 0;
       pre.outerHTML = window.__shiki.codeToHtml(el.textContent, { lang: m[1], theme: 'github-dark' });
+      if (block && startLine > 0) {
+        var lines = block.querySelectorAll('.shiki .line');
+        for (var li = 0; li < lines.length; li++) {
+          lines[li].setAttribute('data-line', String(startLine + 1 + li));
+        }
+      }
     } catch(e) {}
   });
+  if (typeof __updateLineNumbers === 'function') __updateLineNumbers();
 }
 
+function __computeTargetLines(fullMd) {
+  var allLines = fullMd.split(/\r?\n/);
+  var totalLines = allLines.length;
+  var targets = [];
+  var next = 10;
+  while (next <= totalLines) {
+    if (allLines[next - 1].trim().length > 0) {
+      targets.push(next);
+      next += 10;
+    } else {
+      var cur = next + 1;
+      while (cur <= totalLines && allLines[cur - 1].trim().length === 0) {
+        cur++;
+      }
+      if (cur <= totalLines) {
+        targets.push(cur);
+        next = Math.floor(cur / 10) * 10 + 10;
+      } else {
+        break;
+      }
+    }
+  }
+  return targets;
+}
+
+function __updateLineNumbers() {
+  var gutter = document.getElementById('nmd-line-gutter');
+  if (!gutter) return;
+  gutter.innerHTML = '';
+  var targets = window.__targetLines;
+  if (!targets || !targets.length) return;
+  var frag = document.createDocumentFragment();
+  var seenTops = {};
+  for (var i = 0; i < targets.length; i++) {
+    var edLine = targets[i];
+    var bodyLine = edLine - (window._fmOffset || 0);
+    var el = document.querySelector('[data-line="' + bodyLine + '"]');
+    if (!el) {
+      var all = document.querySelectorAll('[data-line]');
+      var best = null;
+      var bestDiff = Infinity;
+      for (var j = 0; j < all.length; j++) {
+        var l = parseInt(all[j].getAttribute('data-line'), 10);
+        if (!isNaN(l)) {
+          var diff = Math.abs(l - bodyLine);
+          if (diff < bestDiff) {
+            bestDiff = diff;
+            best = all[j];
+          }
+        }
+      }
+      el = best;
+    }
+    if (!el) continue;
+    var rect = el.getBoundingClientRect();
+    var top = Math.round(rect.top + (window.scrollY || window.pageYOffset || 0));
+    if (seenTops[top]) continue;
+    seenTops[top] = true;
+
+    var numEl = document.createElement('div');
+    numEl.className = 'nmd-line-num';
+    numEl.style.top = top + 'px';
+    numEl.textContent = String(edLine);
+    frag.appendChild(numEl);
+  }
+  gutter.appendChild(frag);
+}
+
+window.addEventListener('resize', function() {
+  if (typeof __updateLineNumbers === 'function') {
+    __updateLineNumbers();
+  }
+});
+
+function __peleRender(root) {
+  var peleObj = (typeof window !== 'undefined' && window.pele) || (typeof pele !== 'undefined' ? pele : null);
+  if (!peleObj || typeof peleObj.render !== 'function') return;
+  var rootEl = (root && root.querySelectorAll) ? root : document;
+  var blocks = rootEl.querySelectorAll('pre > code.language-mermaid');
+  for (var i = 0; i < blocks.length; i++) {
+    var codeEl = blocks[i];
+    var pre = codeEl.closest ? codeEl.closest('pre') : codeEl.parentNode;
+    if (!pre) continue;
+    var line = pre.getAttribute ? pre.getAttribute('data-line') : (pre.dataset ? pre.dataset.line : null);
+    var code = codeEl.textContent;
+    try {
+      var result = peleObj.render(code);
+      if (result && result.svg) {
+        var container = document.createElement('div');
+        container.className = 'pele-container';
+        if (line !== null && line !== undefined) {
+          container.setAttribute('data-line', line);
+        }
+        container.innerHTML = result.svg;
+        if (pre.replaceWith) {
+          pre.replaceWith(container);
+        } else if (pre.parentNode && pre.parentNode.replaceChild) {
+          pre.parentNode.replaceChild(container, pre);
+        }
+      }
+    } catch (e) {
+      console.warn('Pele diagram render error:', e);
+    }
+  }
+}
+var __mermaidRender = __peleRender;
+
 function renderMarkdown(md) {
+  var fullMd = md;
   var acronyms = parseFrontMatterAcronyms(md);
   var fmMatch = md.match(/^\s*---\n[\s\S]*?\n---\n?/);
   window._fmOffset = fmMatch ? (fmMatch[0].match(/\n/g) || []).length : 0;
+  window.__targetLines = __computeTargetLines(fullMd);
   md = md.replace(/^\s*---\n[\s\S]*?\n---\n?/, '');
   var el = document.getElementById('content');
   if (typeof marked !== 'undefined') {
@@ -395,6 +584,9 @@ function renderMarkdown(md) {
       if (src && !/^(?:[a-z][a-z\d+.-]*:|\/|#)/i.test(src)) {
         img.src = new URL(src, base).href;
       }
+      img.addEventListener('load', function() {
+        if (typeof __updateLineNumbers === 'function') __updateLineNumbers();
+      });
     });
     applyAcronyms(el, acronyms);
     el.querySelectorAll('blockquote').forEach(function(bq) {
@@ -407,37 +599,29 @@ function renderMarkdown(md) {
     el.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach(function(h) {
       h.innerHTML = h.innerHTML.replace(/(\{[^}]*\})/g, '<span style="color:#ADBAC7">$1</span>');
     });
+    __peleRender(el);
     __shikiHighlight();
-    __mermaidRender();
+    __updateLineNumbers();
   } else {
     // ponytail: plain-text fallback until marked.js is embedded
     el.textContent = md;
   }
 }
 </script>
-<script src="https://nmd-local/mermaid.js"></script>
+<script src="https://nmd-local/pele.js"></script>
 <script>
-mermaid.initialize({ startOnLoad: false, theme: 'dark' });
-
-async function __mermaidRender() {
-  var blocks = document.querySelectorAll('pre > code.language-mermaid');
-  for (var i = 0; i < blocks.length; i++) {
-    var pre = blocks[i].closest('pre');
-    var code = blocks[i].textContent;
-    try {
-      var result = await mermaid.render('mermaid-diag-' + i, code);
-      var div = document.createElement('div');
-      div.innerHTML = result.svg;
-      pre.replaceWith(div.firstChild);
-    } catch(e) {}
-  }
+if (typeof __peleRender === 'function' && document.getElementById('content') && document.getElementById('content').children.length) {
+  __peleRender();
 }
 </script>
 <script type="module">
 import { createShiki } from 'https://nmd-local/shiki.js'
 const hl = await createShiki('https://nmd-local/onig.wasm')
 window.__shiki = hl
-if (document.getElementById('content').children.length) window.__shikiHighlight()
+if (document.getElementById('content').children.length) {
+  window.__shikiHighlight()
+  if (window.__updateLineNumbers) window.__updateLineNumbers()
+}
 </script>
 </body>
 </html>

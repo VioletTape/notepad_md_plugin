@@ -3,7 +3,8 @@
 #define IDR_SHIKI_JS  200
 #define IDR_ONIG_WASM 201
 #define IDR_NMD_HTML  202
-#define IDR_MERMAID_JS 203
+#define IDR_PELE_JS   203
+#define IDR_MERMAID_JS IDR_PELE_JS
 #define IDR_KATEX_JS  204
 #define IDR_KATEX_CSS 205
 

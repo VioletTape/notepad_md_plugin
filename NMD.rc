@@ -5,7 +5,7 @@ IDI_PREVIEW   ICON    "nmd.ico"
 IDR_SHIKI_JS  RCDATA  "res/shiki.bundle.js"
 IDR_ONIG_WASM RCDATA  "res/onig.wasm"
 IDR_NMD_HTML  RCDATA  "res/nmd.html"
-IDR_MERMAID_JS RCDATA  "res/mermaid.min.js"
+IDR_PELE_JS   RCDATA  "res/pele.min.js"
 IDR_KATEX_JS    RCDATA  "res/katex.bundle.js"
 IDR_KATEX_CSS   RCDATA  "res/katex.min.css"
 
